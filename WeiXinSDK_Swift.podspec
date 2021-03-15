@@ -29,5 +29,5 @@ Pod::Spec.new do |spec|
   spec.frameworks = 'CFNetwork', 'CoreMotion', 'Foundation', 'CoreGraphics', 'SystemConfiguration', 'UIKit', 'CoreText', 'QuartzCore', 'CoreTelephony','WebKit'
   spec.libraries = 'z', 'c++', 'sqlite3.0'
   spec.vendored_libraries = "WeiXinSDK_Swift/Classes/libWeChatSDK.a"
-  
+  spec.pod_target_xcconfig = { 'VALID_ARCHS' => 'x86_64 armv7 arm64' }
 end
