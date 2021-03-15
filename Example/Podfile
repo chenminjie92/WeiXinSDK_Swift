@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '10.0'
+
+target 'WeiXinSDK_Swift_Example' do
+  pod 'WeiXinSDK_Swift', :path => '../'
+
+  target 'WeiXinSDK_Swift_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
