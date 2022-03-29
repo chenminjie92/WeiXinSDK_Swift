@@ -33,6 +33,7 @@ enum WXScene {
     WXSceneTimeline         = 1,   /**< 朋友圈     */
     WXSceneFavorite         = 2,   /**< 收藏       */
     WXSceneSpecifiedSession = 3,   /**< 指定联系人  */
+    WXSceneState            = 4,   /**< 状态  */
 };
 
 
@@ -163,93 +164,6 @@ typedef void(^WXCheckULCompletion)(WXULCheckStep step, WXCheckULStepResult* resu
 #pragma mark - WXMediaMessage
 @class WXMediaMessage;
 
-#ifndef BUILD_WITHOUT_PAY
-
-#pragma mark - PayReq
-/*! @brief 第三方向微信终端发起支付的消息结构体
- *
- *  第三方向微信终端发起支付的消息结构体，微信终端处理后会向第三方返回处理结果
- * @see PayResp
- */
-@interface PayReq : BaseReq
-
-/** 商家向财付通申请的商家id */
-@property (nonatomic, copy) NSString *partnerId;
-/** 预支付订单 */
-@property (nonatomic, copy) NSString *prepayId;
-/** 随机串，防重发 */
-@property (nonatomic, copy) NSString *nonceStr;
-/** 时间戳，防重发 */
-@property (nonatomic, assign) UInt32 timeStamp;
-/** 商家根据财付通文档填写的数据和签名 */
-@property (nonatomic, copy) NSString *package;
-/** 商家根据微信开放平台文档对数据做的签名 */
-@property (nonatomic, copy) NSString *sign;
-
-@end
-
-
-#pragma mark - PayResp
-/*! @brief 微信终端返回给第三方的关于支付结果的结构体
- *
- *  微信终端返回给第三方的关于支付结果的结构体
- */
-@interface PayResp : BaseResp
-
-/** 财付通返回给商家的信息 */
-@property (nonatomic, copy) NSString *returnKey;
-
-@end
-
-#pragma mark - WXOfflinePay
-/*! @brief 第三方向微信终端发起离线支付
- *
- *  第三方向微信终端发起离线支付的消息结构体
- */
-@interface WXOfflinePayReq : BaseReq
-
-@end
-
-/*! @brief 第三方向微信终端发起离线支付返回
- *
- *  第三方向微信终端发起离线支付返回的消息结构体
- */
-@interface WXOfflinePayResp : BaseResp
-
-@end
-
-
-#pragma mark - WXNontaxPayReq
-@interface WXNontaxPayReq:BaseReq
-
-@property (nonatomic, copy) NSString *urlString;
-
-@end
-
-#pragma mark - WXNontaxPayResp
-@interface WXNontaxPayResp : BaseResp
-
-@property (nonatomic, copy) NSString *wxOrderId;
-
-@end
-
-#pragma mark - WXPayInsuranceReq
-@interface WXPayInsuranceReq : BaseReq
-
-@property (nonatomic, copy) NSString *urlString;
-
-@end
-
-#pragma mark - WXPayInsuranceResp
-@interface WXPayInsuranceResp : BaseResp
-
-@property (nonatomic, copy) NSString *wxOrderId;
-
-@end
-
-#endif
-
-
 #pragma mark - SendAuthReq
 /*! @brief 第三方程序向微信终端请求认证的消息结构
  *
@@ -287,7 +201,55 @@ typedef void(^WXCheckULCompletion)(WXULCheckStep step, WXCheckULStepResult* resu
 @property (nonatomic, copy, nullable) NSString *country;
 @end
 
+#pragma mark - WXStateJumpInfo
+/*! @brief 状态发表时的小尾巴跳转信息
+ */
+@interface WXStateJumpInfo : NSObject
 
+@end
+
+#pragma mark - WXStateJumpUrlInfo
+/*! @brief 状态小尾巴跳转指定url的信息
+ */
+@interface WXStateJumpUrlInfo : WXStateJumpInfo
+/** 跳转到指定的url
+ * @note 必填，url长度必须大于0且小于10K
+ */
+@property (nonatomic, copy) NSString *url;
+
+@end
+
+#pragma mark - WXStateSceneDataObject
+/*! @brief 场景类型额外参数基类
+ */
+@interface WXSceneDataObject : NSObject
+
+@end
+
+#pragma mark - WXStateSceneDataObject
+/*! @brief 状态场景类型
+ * 用户填写WXStateSceneDataObject参数后，可以跳转到微信状态发表页
+ */
+@interface WXStateSceneDataObject : WXSceneDataObject
+
+/** 状态标志的ID
+ * @note 选填，文本长度必须小于10K
+ */
+@property (nonatomic, copy) NSString *stateId;
+/** 状态发表时附带的文本描述
+ * @note 选填，文本长度必须小于10K
+ */
+@property (nonatomic, copy) NSString *stateTitle;
+/** 后台校验token
+ * @note 选填，文本长度必须小于10K
+ */
+@property (nonatomic, copy) NSString *token;
+/** 小尾巴跳转所需的信息
+ * @note 必填，目前仅支持url跳转
+ */
+@property (nonatomic, strong) WXStateJumpInfo *stateJumpDataInfo;
+
+@end
 
 #pragma mark - SendMessageToWXReq
 /*! @brief 第三方程序发送消息至微信终端程序的消息结构体
@@ -315,6 +277,11 @@ typedef void(^WXCheckULCompletion)(WXULCheckStep step, WXCheckULStepResult* resu
  * @note WXSceneSpecifiedSession时有效
  */
 @property (nonatomic, copy, nullable) NSString *toUserOpenId;
+/** 目标场景附带信息
+ * @note 目前只针对状态场景
+ */
+@property (nonatomic, strong) WXSceneDataObject *sceneDataObject;
+
 @end
 
 #pragma mark - SendMessageToWXResp
@@ -831,6 +798,10 @@ typedef void(^WXCheckULCompletion)(WXULCheckStep step, WXCheckULStepResult* resu
  */
 @property (nonatomic, copy, nullable) NSString *identification;
 
+/**运营H5地址
+ * @note 选填，建议填写，用户进入歌曲详情页将展示内嵌的运营H5，可展示该歌曲的相关评论、歌曲推荐等内容，不可诱导下载、分享等。
+ */
+@property (nonatomic, copy, nullable) NSString *musicOperationUrl;
 
 @end
 
@@ -1162,4 +1133,28 @@ typedef void(^WXCheckULCompletion)(WXULCheckStep step, WXCheckULStepResult* resu
 @property (nonatomic, copy, nullable) NSString *extMsg;
 
 @end
+
+#pragma mark - WXOpenCustomerServiceReq
+@interface WXOpenCustomerServiceReq : BaseReq
+
++ (WXOpenCustomerServiceReq *)object;
+
+/**企微客服发起流程 url
+ */
+@property (nonatomic, copy, nullable) NSString *url;
+
+/**企业 id
+ */
+@property (nonatomic, copy, nullable) NSString *corpid;
+
+@end
+
+@interface WXOpenCustomerServiceResp : BaseResp
+
+/** 业务返回数据
+ */
+@property (nonatomic, copy, nullable) NSString *extMsg;
+
+@end
+
 NS_ASSUME_NONNULL_END

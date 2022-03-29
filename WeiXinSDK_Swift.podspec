@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |spec|
   spec.name              = "WeiXinSDK_Swift"
-  spec.version           = '1.8.9'
+  spec.version           = '1.9.2'
   spec.license           = { :type => 'MIT', :text => <<-LICENSE
                               Copyright 2019
                               LICENSE
